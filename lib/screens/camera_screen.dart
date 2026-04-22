@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart';
 import '../main.dart';
 import '../services/photo_service.dart';
+import 'vibe_loading_screen.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -92,25 +94,22 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
     try {
       final XFile photo = await _controller!.takePicture();
-      
-      final Directory appDir = await getApplicationDocumentsDirectory();
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String fileName = 'vibecheck_$timestamp.jpg';
-      final String savePath = path.join(appDir.path, fileName);
-
-      await File(photo.path).copy(savePath);
-      await PhotoService.savePhoto(savePath);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Photo saved!'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: const Duration(seconds: 1),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                VibeLoadingScreen(imagePath: photo.path),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+              return SlideTransition(position: offsetAnimation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 400),
           ),
         );
       }
@@ -131,6 +130,57 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     }
   }
 
+  Future<void> _pickImageFromGallery() async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+
+      if (image != null) {
+        if (mounted) {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  VibeLoadingScreen(imagePath: image.path),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.0, 1.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var offsetAnimation = animation.drive(tween);
+                return SlideTransition(position: offsetAnimation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to pick image'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
@@ -139,15 +189,40 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               Text(
                 'Initializing Camera...',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
@@ -161,64 +236,82 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     final cameraRatio = _controller!.value.aspectRatio;
 
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Transform.scale(
-            scale: cameraRatio / deviceRatio,
-            child: Center(
-              child: CameraPreview(_controller!),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.3),
-                  Colors.transparent,
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.5),
-                ],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0, bottom: 16.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(35),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Transform.scale(
+                      scale: cameraRatio / deviceRatio,
+                      child: Center(
+                        child: CameraPreview(_controller!),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withOpacity(0.3),
+                            Colors.transparent,
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.5),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SafeArea(
-            child: Column(
+            Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.only(top: 35.0, right: 30.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
+                        width: 50,
+                        height: 50,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(30),
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.black.withOpacity(0.6),
+                              Colors.black.withOpacity(0.4),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Colors.white.withOpacity(0.3),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                               blurRadius: 20,
-                              spreadRadius: 2,
                             ),
                           ],
                         ),
-                        child: Text(
-                          'VibeCheck AI',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(25),
+                            onTap: _isProcessing ? null : _pickImageFromGallery,
+                            child: const Icon(
+                              Icons.photo_library,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),
@@ -227,54 +320,71 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                 ),
                 const Spacer(),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 40.0),
+                  padding: const EdgeInsets.only(bottom: 50.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       const SizedBox(width: 60),
-                      GestureDetector(
-                        onTap: _isProcessing ? null : _takePicture,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 4,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
+                      AnimatedScale(
+                        scale: _isProcessing ? 0.95 : 1.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: GestureDetector(
+                          onTap: _isProcessing ? null : _takePicture,
                           child: Container(
-                            margin: const EdgeInsets.all(5),
+                            width: 85,
+                            height: 85,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _isProcessing 
-                                  ? Colors.grey 
-                                  : Theme.of(context).colorScheme.primary,
-                              gradient: _isProcessing ? null : LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Theme.of(context).colorScheme.primary,
-                                  Theme.of(context).colorScheme.secondary,
-                                ],
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 5,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                  blurRadius: 35,
+                                  spreadRadius: 8,
+                                ),
+                                BoxShadow(
+                                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.6),
+                                  blurRadius: 50,
+                                  spreadRadius: 15,
+                                ),
+                              ],
                             ),
-                            child: _isProcessing
-                                ? const Center(
-                                    child: CircularProgressIndicator(
+                            child: Container(
+                              margin: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: _isProcessing 
+                                    ? LinearGradient(
+                                        colors: [
+                                          Colors.grey.shade700,
+                                          Colors.grey.shade600,
+                                        ],
+                                      )
+                                    : LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Theme.of(context).colorScheme.primary,
+                                          Theme.of(context).colorScheme.secondary,
+                                        ],
+                                      ),
+                              ),
+                              child: _isProcessing
+                                  ? const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.camera_alt,
                                       color: Colors.white,
-                                      strokeWidth: 2,
+                                      size: 32,
                                     ),
-                                  )
-                                : null,
+                            ),
                           ),
                         ),
                       ),
@@ -284,24 +394,36 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                           height: 60,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.black.withOpacity(0.5),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.black.withOpacity(0.6),
+                                Colors.black.withOpacity(0.4),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
+                              color: Colors.white.withOpacity(0.3),
                               width: 2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                                blurRadius: 15,
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                                blurRadius: 20,
                               ),
                             ],
                           ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.flip_camera_ios,
-                              color: Colors.white,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(30),
+                              onTap: _switchCamera,
+                              child: const Icon(
+                                Icons.flip_camera_ios,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
-                            onPressed: _switchCamera,
                           ),
                         )
                       else
@@ -311,8 +433,8 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

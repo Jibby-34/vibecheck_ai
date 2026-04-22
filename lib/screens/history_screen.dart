@@ -77,7 +77,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -85,12 +85,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 Theme.of(context).colorScheme.secondary,
               ],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(25),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                blurRadius: 15,
-                spreadRadius: 2,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                blurRadius: 20,
+                spreadRadius: 3,
               ),
             ],
           ),
@@ -98,14 +98,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
             'History',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+              letterSpacing: 1.5,
+              fontSize: 18,
             ),
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadPhotos,
+          Container(
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                  Theme.of(context).colorScheme.secondary.withOpacity(0.4),
+                ],
+              ),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                width: 2,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: _loadPhotos,
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(Icons.refresh, size: 22),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -114,15 +138,40 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(
-                    color: Theme.of(context).colorScheme.primary,
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                   Text(
                     'Loading photos...',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontSize: 16,
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
@@ -133,26 +182,64 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.photo_library_outlined,
-                        size: 100,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                              blurRadius: 30,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.photo_library_outlined,
+                          size: 70,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 30),
                       Text(
                         'No photos yet',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary,
-                          fontSize: 24,
+                          color: Colors.white,
+                          fontSize: 26,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Take your first photo!',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
-                          fontSize: 16,
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                              Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Text(
+                          'Take your first vibe check!',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                            fontSize: 16,
+                            letterSpacing: 0.3,
+                          ),
                         ),
                       ),
                     ],
@@ -170,11 +257,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ),
                   child: GridView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
+                    physics: const BouncingScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
                     ),
                     itemCount: _photos.length,
                     itemBuilder: (context, index) {
@@ -198,17 +286,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           tag: photo['path']!,
                           child: Container(
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(25),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                  Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                                ],
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 5),
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                  spreadRadius: 2,
                                 ),
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(25),
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
@@ -223,35 +320,54 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         end: Alignment.bottomCenter,
                                         colors: [
                                           Colors.transparent,
-                                          Colors.black.withOpacity(0.7),
+                                          Colors.black.withOpacity(0.8),
                                         ],
+                                        stops: const [0.5, 1.0],
                                       ),
                                     ),
                                   ),
                                   Positioned(
-                                    bottom: 10,
-                                    left: 10,
-                                    right: 10,
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time,
-                                          color: Theme.of(context).colorScheme.secondary,
-                                          size: 16,
+                                    bottom: 12,
+                                    left: 12,
+                                    right: 12,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                                            Theme.of(context).colorScheme.secondary.withOpacity(0.5),
+                                          ],
                                         ),
-                                        const SizedBox(width: 5),
-                                        Expanded(
-                                          child: Text(
-                                            _formatTimestamp(photo['timestamp']!),
-                                            style: TextStyle(
-                                              color: Theme.of(context).colorScheme.secondary,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.access_time_rounded,
+                                            color: Colors.white,
+                                            size: 14,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 6),
+                                          Expanded(
+                                            child: Text(
+                                              _formatTimestamp(photo['timestamp']!),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.3,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
