@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'camera_screen.dart';
 import 'history_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,9 +11,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   final List<Widget> _screens = [
+    const SettingsScreen(),
     const CameraScreen(),
     const HistoryScreen(),
   ];
@@ -65,15 +67,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               children: [
                 _buildNavItem(
                   context,
+                  icon: Icons.settings_rounded,
+                  label: 'Settings',
+                  index: 0,
+                ),
+                _buildNavItem(
+                  context,
                   icon: Icons.camera_alt_rounded,
                   label: 'Camera',
-                  index: 0,
+                  index: 1,
                 ),
                 _buildNavItem(
                   context,
                   icon: Icons.history_rounded,
                   label: 'History',
-                  index: 1,
+                  index: 2,
                 ),
               ],
             ),

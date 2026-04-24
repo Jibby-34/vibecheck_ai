@@ -330,48 +330,6 @@ class _VibeResultScreenState extends State<VibeResultScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 32),
-                            Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Theme.of(context).colorScheme.primary,
-                                    Theme.of(context).colorScheme.secondary,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(25),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                                    blurRadius: 25,
-                                    spreadRadius: 3,
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(25),
-                                  onTap: () => Navigator.pop(context),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 18),
-                                    child: const Text(
-                                      'Take Another',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -383,7 +341,7 @@ class _VibeResultScreenState extends State<VibeResultScreen> {
           SafeArea(
             child: Positioned(
               top: 12,
-              left: 20,
+              left: 12,
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -403,14 +361,14 @@ class _VibeResultScreenState extends State<VibeResultScreen> {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(28),
                     onTap: () => Navigator.pop(context),
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.all(14.0),
                       child: Icon(
                         Icons.arrow_back_rounded,
                         color: Colors.white.withOpacity(0.95),
-                        size: 22,
+                        size: 28,
                       ),
                     ),
                   ),

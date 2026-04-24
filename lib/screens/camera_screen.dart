@@ -241,9 +241,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0, bottom: 16.0),
+              padding: const EdgeInsets.only(top: 0.0),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(35),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(35),
+                  topRight: Radius.circular(35),
+                ),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -274,13 +277,13 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
             Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 35.0, right: 30.0),
+                  padding: const EdgeInsets.only(top: 20.0, right: 20.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
-                        width: 50,
-                        height: 50,
+                        width: 55,
+                        height: 55,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
@@ -305,12 +308,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(27.5),
                             onTap: _isProcessing ? null : _pickImageFromGallery,
                             child: const Icon(
                               Icons.photo_library,
                               color: Colors.white,
-                              size: 24,
+                              size: 26,
                             ),
                           ),
                         ),

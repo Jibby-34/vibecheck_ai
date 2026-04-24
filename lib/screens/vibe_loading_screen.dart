@@ -1,5 +1,9 @@
 import 'dart:io';
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/vibe_check_service.dart';
 import '../models/vibe_result.dart';
 import 'vibe_result_screen.dart';
@@ -21,19 +25,53 @@ class _VibeLoadingScreenState extends State<VibeLoadingScreen>
   late AnimationController _controller;
   bool _hasError = false;
   String _errorMessage = '';
+  late Timer _messageTimer;
+  int _currentMessageIndex = 0;
+  
+  final List<String> _loadingMessages = [
+    'Judging your room choices...',
+    'Calculating chaos levels...',
+    'Analyzing poster placements...',
+    'Detecting laundry piles...',
+    'Counting coffee cups...',
+    'Evaluating aesthetic energy...',
+    'Scanning for hidden snacks...',
+    'Measuring plant vibes...',
+    'Rating your lighting game...',
+    'Checking color coordination...',
+    'Inspecting clutter density...',
+    'Vibing with your décor...',
+    'Studying feng shui fails...',
+    'Detecting personality traits...',
+    'Reading room energy...',
+  ];
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat();
+    
+    // Shuffle messages for variety
+    _loadingMessages.shuffle(Random());
+    
+    // Cycle through messages every 1.5 seconds
+    _messageTimer = Timer.periodic(const Duration(milliseconds: 1500), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentMessageIndex = (_currentMessageIndex + 1) % _loadingMessages.length;
+        });
+      }
+    });
+    
     _analyzeImage();
   }
 
   @override
   void dispose() {
+    _messageTimer.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -43,6 +81,13 @@ class _VibeLoadingScreenState extends State<VibeLoadingScreen>
       print('Starting image analysis for: ${widget.imagePath}');
       final result = await VibeCheckService.analyzeImage(File(widget.imagePath));
       print('Analysis complete: score=${result.vibeScore}, tagline=${result.tagline}');
+
+      // Trigger haptic feedback if enabled
+      final prefs = await SharedPreferences.getInstance();
+      final hapticsEnabled = prefs.getBool('haptics') ?? true;
+      if (hapticsEnabled) {
+        await HapticFeedback.heavyImpact();
+      }
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -98,14 +143,14 @@ class _VibeLoadingScreenState extends State<VibeLoadingScreen>
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: 240,
-                        height: 240,
+                        width: 280,
+                        height: 280,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              Theme.of(context).colorScheme.primary.withOpacity(0.4),
-                              Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                              Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                              Theme.of(context).colorScheme.secondary.withOpacity(0.3),
                               Colors.transparent,
                             ],
                             stops: const [0.0, 0.5, 1.0],
@@ -118,21 +163,23 @@ class _VibeLoadingScreenState extends State<VibeLoadingScreen>
                           return Transform.rotate(
                             angle: _controller.value * 2 * 3.14159,
                             child: Container(
-                              width: 180,
-                              height: 180,
+                              width: 200,
+                              height: 200,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: SweepGradient(
                                   colors: [
                                     Theme.of(context).colorScheme.primary,
                                     Theme.of(context).colorScheme.secondary,
+                                    Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                    Theme.of(context).colorScheme.secondary,
                                     Theme.of(context).colorScheme.primary,
                                   ],
-                                  stops: const [0.0, 0.5, 1.0],
+                                  stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
                                 ),
                               ),
                               child: Container(
-                                margin: const EdgeInsets.all(10),
+                                margin: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Theme.of(context).scaffoldBackgroundColor,
@@ -143,8 +190,8 @@ class _VibeLoadingScreenState extends State<VibeLoadingScreen>
                         },
                       ),
                       Container(
-                        width: 100,
-                        height: 100,
+                        width: 110,
+                        height: 110,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
@@ -163,52 +210,55 @@ class _VibeLoadingScreenState extends State<VibeLoadingScreen>
                         ),
                         child: const Icon(
                           Icons.auto_awesome,
-                          size: 50,
+                          size: 55,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 50),
-                  Text(
-                    'Analyzing Your Vibe',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      shadows: [
-                        Shadow(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                          offset: const Offset(0, 2),
-                          blurRadius: 8,
-                        ),
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
                       ],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'Analyzing Your Vibe',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                          Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                        width: 1.5,
-                      ),
-                    ),
+                  const SizedBox(height: 30),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.3),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
                     child: Text(
-                      'Hang tight, AI is working its magic...',
+                      _loadingMessages[_currentMessageIndex],
+                      key: ValueKey<int>(_currentMessageIndex),
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
+                        height: 1.4,
                       ),
                     ),
                   ),

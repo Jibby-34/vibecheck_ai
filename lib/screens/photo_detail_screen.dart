@@ -1,30 +1,40 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-class PhotoDetailScreen extends StatelessWidget {
+class PhotoDetailScreen extends StatefulWidget {
   final String photoPath;
   final String timestamp;
+  final bool isFavorite;
   final VoidCallback onDelete;
+  final VoidCallback onFavoriteToggle;
 
   const PhotoDetailScreen({
     super.key,
     required this.photoPath,
     required this.timestamp,
+    required this.isFavorite,
     required this.onDelete,
+    required this.onFavoriteToggle,
   });
 
-  String _formatFullTimestamp(String timestamp) {
-    try {
-      final dateTime = DateTime.parse(timestamp);
-      final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-      ];
-      
-      return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year} at ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return 'Unknown date';
-    }
+  @override
+  State<PhotoDetailScreen> createState() => _PhotoDetailScreenState();
+}
+
+class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
+  late bool _isFavorite;
+
+  @override
+  void initState() {
+    super.initState();
+    _isFavorite = widget.isFavorite;
+  }
+
+  void _toggleFavorite() {
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+    widget.onFavoriteToggle();
   }
 
   @override
@@ -35,13 +45,13 @@ class PhotoDetailScreen extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Hero(
-            tag: photoPath,
+            tag: widget.photoPath,
             child: InteractiveViewer(
               minScale: 0.5,
               maxScale: 4.0,
               child: Center(
                 child: Image.file(
-                  File(photoPath),
+                  File(widget.photoPath),
                   fit: BoxFit.contain,
                 ),
               ),
@@ -88,111 +98,107 @@ class PhotoDetailScreen extends StatelessWidget {
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              color: Theme.of(context).colorScheme.secondary,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _formatFullTimestamp(timestamp),
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.secondary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                      Row(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
+                              border: Border.all(
+                                color: _isFavorite ? Colors.pink : Colors.white.withOpacity(0.5),
+                                width: 2,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (_isFavorite ? Colors.pink : Colors.white).withOpacity(0.3),
+                                  blurRadius: 15,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black.withOpacity(0.5),
-                          border: Border.all(
-                            color: Colors.red.withOpacity(0.7),
-                            width: 2,
+                            child: IconButton(
+                              icon: Icon(
+                                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                                color: _isFavorite ? Colors.pink : Colors.white,
+                              ),
+                              onPressed: _toggleFavorite,
+                            ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.red.withOpacity(0.3),
-                              blurRadius: 15,
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
+                              border: Border.all(
+                                color: Colors.red.withOpacity(0.7),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.red.withOpacity(0.3),
+                                  blurRadius: 15,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: Theme.of(context).colorScheme.surface,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  side: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2,
-                                  ),
-                                ),
-                                title: Text(
-                                  'Delete Photo',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.secondary,
-                                  ),
-                                ),
-                                content: Text(
-                                  'Are you sure you want to delete this photo?',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text(
-                                      'Cancel',
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    backgroundColor: Theme.of(context).colorScheme.surface,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      side: BorderSide(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      'Delete Photo',
                                       style: TextStyle(
                                         color: Theme.of(context).colorScheme.secondary,
                                       ),
                                     ),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                    content: Text(
+                                      'Are you sure you want to delete this photo?',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      onDelete();
-                                      Navigator.pop(context);
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text(
-                                      'Delete',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.secondary,
+                                          ),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          widget.onDelete();
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
