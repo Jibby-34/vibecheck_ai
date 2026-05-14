@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/photo_service.dart';
+import '../services/share_service.dart';
 import 'photo_detail_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -47,6 +48,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
           content: const Text('Photo deleted'),
           backgroundColor: Theme.of(context).colorScheme.primary,
           duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _sharePhoto(String photoPath) async {
+    try {
+      await ShareService.shareImage(photoPath);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to share photo'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveWatermarkedPhoto(String photoPath) async {
+    final success = await ShareService.saveWatermarkedImageToGallery(photoPath);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? 'Saved to gallery!' : 'Failed to save'),
+          backgroundColor: success 
+              ? Theme.of(context).colorScheme.primary 
+              : Colors.red,
+          duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -420,6 +460,66 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                 child: Icon(
                                                   Icons.delete,
                                                   color: Colors.red,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 8,
+                                    right: 8,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.black.withOpacity(0.6),
+                                            border: Border.all(
+                                              color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(20),
+                                              onTap: () => _saveWatermarkedPhoto(photo['path']!),
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(6.0),
+                                                child: Icon(
+                                                  Icons.download,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.black.withOpacity(0.6),
+                                            border: Border.all(
+                                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(20),
+                                              onTap: () => _sharePhoto(photo['path']!),
+                                              child: const Padding(
+                                                padding: EdgeInsets.all(6.0),
+                                                child: Icon(
+                                                  Icons.share,
+                                                  color: Colors.white,
                                                   size: 18,
                                                 ),
                                               ),

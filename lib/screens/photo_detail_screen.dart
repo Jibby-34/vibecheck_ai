@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../services/share_service.dart';
 
 class PhotoDetailScreen extends StatefulWidget {
   final String photoPath;
@@ -35,6 +36,45 @@ class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
       _isFavorite = !_isFavorite;
     });
     widget.onFavoriteToggle();
+  }
+
+  Future<void> _sharePhoto() async {
+    try {
+      await ShareService.shareImage(widget.photoPath);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to share photo'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveWatermarkedPhoto() async {
+    final success = await ShareService.saveWatermarkedImageToGallery(widget.photoPath);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? 'Saved to gallery!' : 'Failed to save'),
+          backgroundColor: success 
+              ? Theme.of(context).colorScheme.primary 
+              : Colors.red,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -100,6 +140,48 @@ class _PhotoDetailScreenState extends State<PhotoDetailScreen> {
                       ),
                       Row(
                         children: [
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                  blurRadius: 15,
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.download, color: Colors.white),
+                              onPressed: _saveWatermarkedPhoto,
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withOpacity(0.5),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.secondary.withOpacity(0.7),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                                  blurRadius: 15,
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.share, color: Colors.white),
+                              onPressed: _sharePhoto,
+                            ),
+                          ),
                           Container(
                             margin: const EdgeInsets.only(right: 8),
                             decoration: BoxDecoration(
